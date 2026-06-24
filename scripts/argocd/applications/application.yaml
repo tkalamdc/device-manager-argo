@@ -11,6 +11,10 @@ spec:
     repoURL: https://github.com/tkalamdc/device-manager-argo.git
     targetRevision: master
     path: charts/device-manager
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-dev.yaml
 
   destination:
     server: https://kubernetes.default.svc
