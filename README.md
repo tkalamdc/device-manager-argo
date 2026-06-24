@@ -10,6 +10,8 @@ Spring Boot 4.x multi-module service, built with Gradle 9.6.0 and Java 21.
 |------|---------|
 | Java (JDK) | 21+ |
 | Docker | 24+ |
+| Helm | 3+ |
+| Kubernetes cluster | 1.28+ |
 
 > No Gradle installation required — all commands use the included `./gradlew` wrapper.
 
@@ -126,6 +128,12 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 ```
 
 Open `http://argocd.local` — login with `admin` and the password above.
+
+Deploy the ArgoCD Application manifest:
+
+```bash
+kubectl apply -f scripts/argocd/applications/application.yaml
+```
 
 > See [`scripts/argocd/README.md`](scripts/argocd/README.md) for full details.
 
