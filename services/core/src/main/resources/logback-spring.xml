@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Read from Spring environment -->
+    <springProperty scope="context" name="appName"    source="spring.application.name" defaultValue="core"/>
+    <springProperty scope="context" name="appVersion" source="spring.application.version" defaultValue="unknown"/>
+
+    <!-- Pod name is the hostname in Kubernetes -->
+    <property name="HOSTNAME" value="${HOSTNAME:-unknown}"/>
+
+    <!-- ================================================================
+         Encoder: JSON via LogstashEncoder
+         MDC fields (traceId, spanId) added automatically by
+         Micrometer Tracing / Spring Boot Actuator
+    ================================================================ -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <!-- Only INFO and below go to stdout -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"${appName}","version":"${appVersion}","pod":"${HOSTNAME}"}</customFields>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxLength>2048</maxLength>
+                <shortenedClassNameLength>35</shortenedClassNameLength>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+        </encoder>
+    </appender>
+
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <!-- Only WARN and ERROR go to stderr -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"${appName}","version":"${appVersion}","pod":"${HOSTNAME}"}</customFields>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxLength>2048</maxLength>
+                <shortenedClassNameLength>35</shortenedClassNameLength>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+        </encoder>
+    </appender>
+
+    <!-- ================================================================
+         Async wrappers — prevents logging from blocking application threads
+    ================================================================ -->
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <appender name="ASYNC_STDERR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDERR"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- ================================================================
+         Loggers
+    ================================================================ -->
+
+    <!-- Silence noisy but non-critical framework logs -->
+    <logger name="org.springframework"                          level="INFO"/>
+    <logger name="org.springframework.web.servlet.mvc.method"  level="WARN"/>
+    <logger name="org.hibernate"                               level="WARN"/>
+    <logger name="com.zaxxer.hikari"                           level="WARN"/>
+
+    <!-- Application code -->
+    <logger name="com.digicert.devicetm" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STDOUT"/>
+        <appender-ref ref="ASYNC_STDERR"/>
+    </logger>
+
+    <!-- Root -->
+    <root level="WARN">
+        <appender-ref ref="ASYNC_STDOUT"/>
+        <appender-ref ref="ASYNC_STDERR"/>
+    </root>
+
+</configuration>

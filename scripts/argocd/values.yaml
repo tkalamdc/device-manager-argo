@@ -1,0 +1,15 @@
+server:
+  service:
+    type: ClusterIP
+
+  # Disable HTTPS on the ArgoCD server — ingress handles routing
+  extraArgs:
+    - --insecure
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    hostname: argocd.local
+    tls: false

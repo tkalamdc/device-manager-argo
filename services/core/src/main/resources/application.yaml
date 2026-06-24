@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: device-trust-device-manager
+    version: ${APP_VERSION:1.0.0}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-components: always
+      show-details: always
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: info, health, metrics
+
+logging:
+  level:
+    root: INFO
+    com.digicert.devicetm.migration: DEBUG

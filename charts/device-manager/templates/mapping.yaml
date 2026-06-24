@@ -1,0 +1,19 @@
+{{- $fullName := include "device-manager.fullname" . -}}
+{{- $apiService := printf "%s:%g" $fullName .Values.service.port -}}
+{{- if .Values.apiService -}}
+{{- $apiService = .Values.apiService -}}
+{{- end }}
+# Add application external API route.
+---
+apiVersion: {{ include "ambassador.apiVersion" . }}
+kind: Mapping
+metadata:
+  name: {{ include "device-manager.name" . }}-api
+spec:
+  ambassador_id: {{ toYaml .Values.ambassador.id | nindent 2 }}
+  prefix: /devicetrustmanager/device-manager/api/v
+  rewrite: ""
+  {{ include "mapping.hostAttribute.host" . }}
+  service: {{ $apiService }}
+  timeout_ms: 0
+  connect_timeout_ms: 15000
